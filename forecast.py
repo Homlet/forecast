@@ -2,11 +2,14 @@
    location will be photographed by NASA satellites.
 """
 import sys
+from datetime import datetime
 
 from nasa import earth
 
 
-START_DATE = "2010-01-01"
+IN_FORMAT = "%Y-%m-%dT%H:%M:%S"
+OUT_FORMAT = "%Y-%m-%d"
+START_DATE = "2012-01-01"
 
 
 class BadInputError(Exception):
@@ -18,28 +21,53 @@ class BadInputError(Exception):
         return "Bad input given: " + self.arg_str
 
 
-def forecast(coords):
-    """Predict a date as the next time the given coords will be photographed."""
-    assets = earth.assets(coords[0], coords[1], START_DATE)
-    for asset in assets:
-        print(asset)
-    return "Never."
+def forecast(coord):
+    """Predict a date as the next time the given coord will be pictured."""
+    assets = earth.assets(coord[0], coord[1], START_DATE)
+    dates = [datetime.strptime(asset.date, IN_FORMAT) for asset in assets]
+    deltas = []
+    for i in range(len(dates) - 1):
+        deltas[i] = dates[i+1] - dates[i]
+    mean = datetime.timedelta(seconds=sum(deltas).total_seconds() / len(deltas))
+    return datetime.strftime(assets[-1].date + mean, OUT_FORMAT)
 
 
 def process_input(argv):
     """Process the arguments and return a geographical coordinate.
     :param argv: User arguments.
     """
-    if not 2 <= argv.length <= 3:
+    # If the first argument is not an option, raise an error.
+    if len(argv) == 0 or not argv[0][:2] == "--":
         raise BadInputError(argv)
-    return 0.0, 0.0
+    option = argv[0][2:]
+    if option == "address":
+        # TODO: use geopy to get coordinate
+        return 0.0, 0.0
+    elif option == "coord":
+        # Try to interpret the arguments as a coordinate.
+        try:
+            lat = float(argv[1])
+            lon = float(argv[2])
+            return lat, lon
+        except ValueError or IndexError:
+            # Invalid values were given, or not enough values.
+            raise BadInputError(argv)
+    else:
+        # The option is invalid; raise an error.
+        raise BadInputError(argv)
 
 
 if __name__ == "__main__":
     try:
-        coords = process_input(sys.argv)
-        print(forecast(coords))
+        argv = sys.argv
+        # The first argument supplied might be a path to the script.
+        if argv[0][-11:] == "forecast.py":
+            # If so, discard it.
+            argv = argv[1:]
+        # Get a coordinate from the input, then forecast for it.
+        coord = process_input(argv)
+        print(forecast(coord))
     except BadInputError as e:
         print(e)
         print("Usage: python forecast.py "
-              "[--address [textual address] | --coord LAT LONG]")
+              "[--address [textual address] | --coord LAT LON]")
