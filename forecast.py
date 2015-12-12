@@ -23,12 +23,13 @@ class BadInputError(Exception):
 
 def forecast(coord):
     """Predict a date as the next time the given coord will be pictured."""
+    # This call will probably fail, due to NASA's poor, overworked servers.
     assets = earth.assets(coord[0], coord[1], START_DATE)
     dates = [datetime.strptime(asset.date, IN_FORMAT) for asset in assets]
     deltas = []
     for i in range(len(dates) - 1):
         deltas[i] = dates[i+1] - dates[i]
-    mean = datetime.timedelta(seconds=sum(deltas).total_seconds() / len(deltas))
+    mean = datetime.timedelta(seconds=sum(deltas).total_seconds()/len(deltas))
     return datetime.strftime(assets[-1].date + mean, OUT_FORMAT)
 
 
@@ -66,8 +67,8 @@ if __name__ == "__main__":
             argv = argv[1:]
         # Get a coordinate from the input, then forecast for it.
         coord = process_input(argv)
-        print(forecast(coord))
+        print forecast(coord)
     except BadInputError as e:
-        print(e)
+        print e
         print("Usage: python forecast.py "
               "[--address [textual address] | --coord LAT LON]")
