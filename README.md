@@ -12,12 +12,12 @@ couple of prerequisites:
 Usage is simple: if you have a coordinate pair (latitude and longitude),
 execute the file with the option --coord, followed by the coordinate.
 
-e.g.: `python forecast.py --coord 51.511407 -0.116043`
+**e.g.:** `python forecast.py --coord 51.511407 -0.116043`
 
 If you don't have a coordinate pair, forecast can generate one for you,
 from an address. Simply execute with --address, followed by the address.
 
-e.g.: `python forecast.py --address Homerton College, Cambridge, CB2 8PH`
+**e.g.:** `python forecast.py --address Homerton College, Cambridge, CB2 8PH`
 
 forecast will return a single YYYY-MM-DD date, its best prediction for
-the next date a photo will be taken. Be prepared!
+the next date a photo will be taken. *Be prepared!*
