@@ -8,9 +8,11 @@ from geopy.geocoders import Nominatim
 from nasa import earth
 from requests import HTTPError
 
+REQ_FORMAT = "%Y-%m-%d"
 IN_FORMAT = "%Y-%m-%dT%H:%M:%S"
 OUT_FORMAT = "%Y-%m-%d"
-START_DATE = "2012-01-01"
+START_DATE = datetime.strftime(datetime.now() - timedelta(days=365),
+                               REQ_FORMAT)
 
 
 class BadInputError(Exception):
@@ -42,12 +44,14 @@ def forecast(coord):
 
     add = lambda a, b: a + b
     wavelength = timedelta(seconds=
-                      reduce(add, deltas).total_seconds() / len(deltas))
+                           reduce(add, deltas).total_seconds() / len(deltas))
     phase = timedelta(seconds=
                       reduce(add, phases).total_seconds() / len(phases))
+
     prediction = dates[0] + phase + wavelength
     while prediction < datetime.now():
         prediction += wavelength
+
     return datetime.strftime(prediction, OUT_FORMAT)
 
 
