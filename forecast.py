@@ -4,8 +4,9 @@
 import sys
 from datetime import datetime
 
+from geopy.geocoders import Nominatim
 from nasa import earth
-
+from requests import HTTPError
 
 IN_FORMAT = "%Y-%m-%dT%H:%M:%S"
 OUT_FORMAT = "%Y-%m-%d"
@@ -23,12 +24,18 @@ class BadInputError(Exception):
 
 def forecast(coord):
     """Predict a date as the next time the given coord will be pictured."""
-    # This call will probably fail, due to NASA's poor, overworked servers.
-    assets = earth.assets(coord[0], coord[1], START_DATE)
+    over_quota = True
+    while over_quota:
+        try:
+            # This will probably fail, due to NASA's poor, overworked servers.
+            assets = earth.assets(coord[0], coord[1], START_DATE)
+        except HTTPError as e:
+            continue
+        over_quota = False
     dates = [datetime.strptime(asset.date, IN_FORMAT) for asset in assets]
     deltas = []
     for i in range(len(dates) - 1):
-        deltas[i] = dates[i+1] - dates[i]
+        deltas.append(dates[i+1] - dates[i])
     mean = datetime.timedelta(seconds=sum(deltas).total_seconds()/len(deltas))
     return datetime.strftime(assets[-1].date + mean, OUT_FORMAT)
 
@@ -42,8 +49,13 @@ def process_input(argv):
         raise BadInputError(argv)
     option = argv[0][2:]
     if option == "address":
-        # TODO: use geopy to get coordinate
-        return 0.0, 0.0
+        try:
+            address = " ".join(argv[1:])
+            location = Nominatim().geocode(address)
+            return location.latitude, location.longitude
+        except IndexError:
+            # Not enough values were given.
+            raise BadInputError(argv)
     elif option == "coord":
         # Try to interpret the arguments as a coordinate.
         try:
