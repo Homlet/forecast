@@ -20,4 +20,5 @@ from an address. Simply execute with --address, followed by the address.
 **e.g.:** `python forecast.py --address Homerton College, Cambridge, CB2 8PH`
 
 forecast will return a single YYYY-MM-DD hh:mm:ss datetime: its best prediction for
-when then next photo will be taken. *Be prepared!*
+when then next photo will be taken.  
+*Be prepared!*
