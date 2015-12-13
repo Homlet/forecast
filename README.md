@@ -1,5 +1,5 @@
-f o r e c a s t
-===============
+☔ f o r e c a s t ☀
+===================
 
 forecast can predict when your location will next be photographed by NASA's
 satellites. forecast is an easy to use, command line tool, with only a
