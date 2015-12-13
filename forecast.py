@@ -5,6 +5,7 @@ import sys
 from datetime import datetime, timedelta
 
 from geopy.geocoders import Nominatim
+from geopy.exc import GeopyError
 from nasa import earth
 from requests import HTTPError
 
@@ -54,10 +55,7 @@ def forecast(coord):
     # Find the average phase, relative to the first date.
     phases = []
     for i in range(1, len(dates)):
-        phase = dates[i] - dates[0]
-        while phase > wavelength:
-            phase -= wavelength
-        phases.append(phase)
+        phases.append(dates[i] - (dates[0] + i * wavelength))
     phase = td_average(phases)
 
     # Find the prediction by repeatedly adding the wavelength.
@@ -79,7 +77,13 @@ def process_input(argv):
     if option == "address":
         try:
             address = " ".join(argv[1:])
-            location = Nominatim().geocode(address)
+            failure = True
+            while failure:
+                try:
+                    location = Nominatim().geocode(address)
+                except GeopyError:
+                    continue
+                failure = False
             return location.latitude, location.longitude
         except IndexError:
             # Not enough values were given.
