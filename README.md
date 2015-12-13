@@ -15,7 +15,7 @@ execute the file with the option --coord, followed by the coordinate.
 e.g.: `python forecast.py --coord 51.511407, -0.116043`
 
 If you don't have a coordinate pair, forecast can generate one for you,
-from an address. Simply exectue with --address, followed by the address.
+from an address. Simply execute with --address, followed by the address.
 
 e.g.: `python forecast.py --address Homerton College, Cambridge, CB2 8PH`
 
