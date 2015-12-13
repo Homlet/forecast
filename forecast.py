@@ -10,7 +10,7 @@ from requests import HTTPError
 
 REQ_FORMAT = "%Y-%m-%d"
 IN_FORMAT = "%Y-%m-%dT%H:%M:%S"
-OUT_FORMAT = "%Y-%m-%d"
+OUT_FORMAT = "%Y-%m-%d %H:%M:%S"
 START_DATE = datetime.strftime(datetime.now() - timedelta(days=365),
                                REQ_FORMAT)
 
@@ -24,6 +24,13 @@ class BadInputError(Exception):
         return "Bad input given: " + self.arg_str
 
 
+def td_average(deltas):
+    """Find the average from a list of timedeltas."""
+    add = lambda a, b: a + b
+    return timedelta(seconds=
+                     reduce(add, deltas).total_seconds() / len(deltas))
+
+
 def forecast(coord):
     """Predict a date as the next time the given coord will be pictured."""
     over_quota = True
@@ -31,28 +38,34 @@ def forecast(coord):
         try:
             # This will probably fail, due to NASA's poor, overworked servers.
             assets = earth.assets(coord[0], coord[1], START_DATE)
-        except HTTPError as e:
+        except HTTPError:
             continue
         over_quota = False
 
+    # Get a list of date-times for the photographs.
     dates = [datetime.strptime(asset.date, IN_FORMAT) for asset in assets]
+
+    # Find the average wavelength between dates.
     deltas = []
-    phases = []
     for i in range(1, len(dates)):
         deltas.append(dates[i] - dates[i-1])
-        phases.append(dates[i] - dates[0])
+    wavelength = td_average(deltas)
 
-    add = lambda a, b: a + b
-    wavelength = timedelta(seconds=
-                           reduce(add, deltas).total_seconds() / len(deltas))
-    phase = timedelta(seconds=
-                      reduce(add, phases).total_seconds() / len(phases))
+    # Find the average phase, relative to the first date.
+    phases = []
+    for i in range(1, len(dates)):
+        phase = dates[i] - dates[0]
+        while phase > wavelength:
+            phase -= wavelength
+        phases.append(phase)
+    phase = td_average(phases)
 
+    # Find the prediction by repeatedly adding the wavelength.
     prediction = dates[0] + phase + wavelength
     while prediction < datetime.now():
         prediction += wavelength
 
-    return datetime.strftime(prediction, OUT_FORMAT)
+    return prediction
 
 
 def process_input(argv):
@@ -94,7 +107,8 @@ if __name__ == "__main__":
             argv = argv[1:]
         # Get a coordinate from the input, then forecast for it.
         coord = process_input(argv)
-        print forecast(coord)
+        prediction = forecast(coord)
+        print datetime.strftime(prediction, OUT_FORMAT)
     except BadInputError as e:
         print e
         print("Usage: python forecast.py "
