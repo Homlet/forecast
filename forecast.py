@@ -2,7 +2,7 @@
    location will be photographed by NASA satellites.
 """
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from geopy.geocoders import Nominatim
 from nasa import earth
@@ -32,12 +32,23 @@ def forecast(coord):
         except HTTPError as e:
             continue
         over_quota = False
+
     dates = [datetime.strptime(asset.date, IN_FORMAT) for asset in assets]
     deltas = []
-    for i in range(len(dates) - 1):
-        deltas.append(dates[i+1] - dates[i])
-    mean = datetime.timedelta(seconds=sum(deltas).total_seconds()/len(deltas))
-    return datetime.strftime(assets[-1].date + mean, OUT_FORMAT)
+    phases = []
+    for i in range(1, len(dates)):
+        deltas.append(dates[i] - dates[i-1])
+        phases.append(dates[i] - dates[0])
+
+    add = lambda a, b: a + b
+    wavelength = timedelta(seconds=
+                      reduce(add, deltas).total_seconds() / len(deltas))
+    phase = timedelta(seconds=
+                      reduce(add, phases).total_seconds() / len(phases))
+    prediction = dates[0] + phase + wavelength
+    while prediction < datetime.now():
+        prediction += wavelength
+    return datetime.strftime(prediction, OUT_FORMAT)
 
 
 def process_input(argv):
