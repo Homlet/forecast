@@ -60,7 +60,8 @@ def forecast(coord):
 
     # Find the prediction by repeatedly adding the wavelength.
     prediction = dates[0] + phase + wavelength
-    while prediction < datetime.now():
+    now = datetime.now()
+    while prediction < now:
         prediction += wavelength
 
     return prediction
