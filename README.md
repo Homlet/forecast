@@ -22,3 +22,6 @@ from an address. Simply execute with --address, followed by the address.
 forecast will return a single YYYY-MM-DD hh:mm:ss datetime: its best prediction for
 when then next photo will be taken.  
 *Be prepared!*
+
+forecast was developed in less than 24 hours as an entry for the 2015
+HackKings hackathon at King's College London.
